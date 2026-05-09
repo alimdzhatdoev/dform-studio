@@ -405,7 +405,187 @@
 }
 
 .orders-table__client strong { font-weight: 500; }
-.orders-table__client span { font-size: 12px; color: var(--color-muted); }
+.orders-table__client span { font-size: 12px; color: var(--color-muted); display: block; }
+
+.orders-table__row:hover td { background: var(--color-bg-alt); }
+
+/* ── Modal ───────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+  animation: fadeIn 0.15s ease;
+}
+
+.modal {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 28px 28px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal__date {
+  font-size: 12px;
+  color: var(--color-muted);
+  margin-bottom: 4px;
+}
+
+.modal__title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.modal__close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration) var(--ease);
+}
+.modal__close:hover { color: var(--color-text); border-color: var(--color-text); }
+
+.modal__contacts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal__contact-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: all var(--duration) var(--ease);
+  border: 1px solid transparent;
+}
+
+.modal__contact-btn--email {
+  background: rgba(57, 200, 244, 0.08);
+  border-color: rgba(57, 200, 244, 0.2);
+  color: #39c8f4;
+}
+.modal__contact-btn--email:hover { background: rgba(57, 200, 244, 0.15); }
+
+.modal__contact-btn--phone {
+  background: rgba(57, 244, 130, 0.08);
+  border-color: rgba(57, 244, 130, 0.2);
+  color: #39f482;
+}
+.modal__contact-btn--phone:hover { background: rgba(57, 244, 130, 0.15); }
+
+.modal__contact-btn > span:first-child {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.modal__contact-label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+  margin-bottom: 2px;
+}
+
+.modal__contact-value {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.modal__body {
+  padding: 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.modal__field { display: flex; flex-direction: column; gap: 4px; }
+.modal__field--full { grid-column: 1 / -1; }
+
+.modal__field-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.modal__field-value {
+  font-size: 15px;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.modal__description {
+  font-size: 14px;
+  color: var(--color-text);
+  line-height: 1.6;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-top: 4px;
+  white-space: pre-wrap;
+}
+
+.modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+}
+
+.modal__id {
+  font-size: 11px;
+  color: var(--color-muted);
+  font-family: monospace;
+}
 
 /* ── CMS shared ──────────────────────────────────────── */
 .cms-section-header {

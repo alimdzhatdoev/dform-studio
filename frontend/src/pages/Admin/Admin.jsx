@@ -140,11 +140,105 @@ function DashboardTab({ analytics }) {
 }
 
 /* ══════════════════════════════════════════════════════
+   ORDER MODAL
+══════════════════════════════════════════════════════ */
+function OrderModal({ order, onClose, onStatusChange }) {
+  if (!order) return null;
+
+  const handleOverlayClick = e => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  const handleStatusChange = e => {
+    onStatusChange(order.id, e.target.value);
+  };
+
+  return (
+    <div className="modal-overlay" onClick={handleOverlayClick}>
+      <div className="modal">
+        <div className="modal__header">
+          <div>
+            <p className="modal__date">
+              {new Date(order.created_at).toLocaleString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </p>
+            <h2 className="modal__title">{order.name}</h2>
+          </div>
+          <button className="modal__close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="modal__contacts">
+          <a href={`mailto:${order.email}`} className="modal__contact-btn modal__contact-btn--email">
+            <span>✉</span>
+            <div>
+              <span className="modal__contact-label">Email</span>
+              <span className="modal__contact-value">{order.email}</span>
+            </div>
+          </a>
+          {order.phone && (
+            <a href={`tel:${order.phone}`} className="modal__contact-btn modal__contact-btn--phone">
+              <span>✆</span>
+              <div>
+                <span className="modal__contact-label">Телефон</span>
+                <span className="modal__contact-value">{order.phone}</span>
+              </div>
+            </a>
+          )}
+        </div>
+
+        <div className="modal__body">
+          <div className="modal__row">
+            <div className="modal__field">
+              <span className="modal__field-label">Услуга</span>
+              <span className="modal__field-value">{order.service}</span>
+            </div>
+            <div className="modal__field">
+              <span className="modal__field-label">Бюджет</span>
+              <span className="modal__field-value">{order.budget || 'Не указан'}</span>
+            </div>
+          </div>
+
+          <div className="modal__field modal__field--full">
+            <span className="modal__field-label">Описание задачи</span>
+            <p className="modal__description">{order.description}</p>
+          </div>
+
+          <div className="modal__field">
+            <span className="modal__field-label">Статус заказа</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}>
+              <Tag variant={STATUS_MAP[order.status]?.variant}>{STATUS_MAP[order.status]?.label}</Tag>
+              <select className="select" style={{ padding: '6px 32px 6px 10px', fontSize: 13 }} value={order.status} onChange={handleStatusChange}>
+                {Object.entries(STATUS_MAP).map(([val, { label }]) => (
+                  <option key={val} value={val}>{label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="modal__footer">
+          <span className="modal__id">ID: {order.id}</span>
+          <Button variant="outline" size="sm" onClick={onClose}>Закрыть</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════
    ORDERS TAB
 ══════════════════════════════════════════════════════ */
 function OrdersTab({ orders, onStatusChange }) {
   const [filterStatus, setFilterStatus] = useState('all');
+  const [selected, setSelected] = useState(null);
+
   const filtered = filterStatus === 'all' ? orders : orders.filter(o => o.status === filterStatus);
+
+  // Обновляем выбранный заказ если статус изменился
+  const handleStatusChange = (id, status) => {
+    onStatusChange(id, status);
+    if (selected?.id === id) setSelected(prev => ({ ...prev, status }));
+  };
+
   return (
     <>
       <div className="admin-orders-header">
@@ -157,20 +251,29 @@ function OrdersTab({ orders, onStatusChange }) {
           ))}
         </div>
       </div>
+
       {filtered.length === 0 ? <p className="admin-empty">Нет заказов</p> : (
         <div className="orders-table-wrap">
           <table className="orders-table">
-            <thead><tr><th>Дата</th><th>Клиент</th><th>Услуга</th><th>Бюджет</th><th>Статус</th><th>Действие</th></tr></thead>
+            <thead>
+              <tr><th>Дата</th><th>Клиент</th><th>Услуга</th><th>Бюджет</th><th>Статус</th><th>Действие</th></tr>
+            </thead>
             <tbody>
               {filtered.map(order => (
-                <tr key={order.id}>
+                <tr key={order.id} className="orders-table__row" onClick={() => setSelected(order)} style={{ cursor: 'pointer' }}>
                   <td className="orders-table__date">{new Date(order.created_at).toLocaleDateString('ru-RU')}</td>
-                  <td><div className="orders-table__client"><strong>{order.name}</strong><span>{order.email}</span></div></td>
+                  <td>
+                    <div className="orders-table__client">
+                      <strong>{order.name}</strong>
+                      <span>{order.email}</span>
+                      {order.phone && <span>{order.phone}</span>}
+                    </div>
+                  </td>
                   <td>{order.service}</td>
                   <td className="orders-table__muted">{order.budget || '—'}</td>
                   <td><Tag variant={STATUS_MAP[order.status]?.variant}>{STATUS_MAP[order.status]?.label}</Tag></td>
-                  <td>
-                    <select className="select" style={{ padding: '6px 32px 6px 10px', fontSize: 12 }} value={order.status} onChange={e => onStatusChange(order.id, e.target.value)}>
+                  <td onClick={e => e.stopPropagation()}>
+                    <select className="select" style={{ padding: '6px 32px 6px 10px', fontSize: 12 }} value={order.status} onChange={e => handleStatusChange(order.id, e.target.value)}>
                       {Object.entries(STATUS_MAP).map(([val, { label }]) => <option key={val} value={val}>{label}</option>)}
                     </select>
                   </td>
@@ -180,6 +283,12 @@ function OrdersTab({ orders, onStatusChange }) {
           </table>
         </div>
       )}
+
+      <OrderModal
+        order={selected}
+        onClose={() => setSelected(null)}
+        onStatusChange={handleStatusChange}
+      />
     </>
   );
 }
