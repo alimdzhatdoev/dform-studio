@@ -3,6 +3,36 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
+const STATIC_DIR = path.join(__dirname, '..', 'frontend', 'build');
+const IS_PROD = process.env.NODE_ENV === 'production';
+
+const MIME = {
+  '.html': 'text/html',
+  '.js':   'application/javascript',
+  '.css':  'text/css',
+  '.json': 'application/json',
+  '.png':  'image/png',
+  '.jpg':  'image/jpeg',
+  '.svg':  'image/svg+xml',
+  '.ico':  'image/x-icon',
+  '.woff2':'font/woff2',
+  '.woff': 'font/woff',
+};
+
+function serveStatic(res, filePath) {
+  const ext = path.extname(filePath);
+  const mime = MIME[ext] || 'application/octet-stream';
+  try {
+    const data = fs.readFileSync(filePath);
+    res.writeHead(200, { 'Content-Type': mime });
+    res.end(data);
+  } catch {
+    const index = fs.readFileSync(path.join(STATIC_DIR, 'index.html'));
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(index);
+  }
+}
+
 const PORT = process.env.PORT || 8000;
 const DATA = path.join(__dirname, 'data');
 
@@ -312,6 +342,12 @@ const server = http.createServer(async (req, res) => {
       writeJson(FILES.site, site);
       return send(res, { success: true, data: list });
     }
+  }
+
+  // В production — отдаём статику React
+  if (IS_PROD) {
+    const filePath = path.join(STATIC_DIR, pathname === '/' ? 'index.html' : pathname);
+    return serveStatic(res, filePath);
   }
 
   send(res, { error: 'Not found' }, 404);

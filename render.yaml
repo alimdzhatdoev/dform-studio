@@ -1,28 +1,9 @@
 services:
   - type: web
-    name: dform-backend
+    name: dform-studio
     runtime: node
-    rootDir: backend
-    buildCommand: npm install
-    startCommand: node server.js
+    buildCommand: npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend
+    startCommand: node backend/server.js
     envVars:
       - key: NODE_ENV
         value: production
-
-  - type: web
-    name: dform-frontend
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: build
-    envVars:
-      - key: REACT_APP_API_URL
-        fromService:
-          name: dform-backend
-          type: web
-          property: host
-          transform: "https://{value}"
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html

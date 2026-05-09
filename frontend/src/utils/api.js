@@ -1,4 +1,6 @@
-const BASE = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Dev: http://localhost:8000 (из .env.development)
+// Prod: '' — запросы идут на тот же домен что и сайт
+const BASE = process.env.REACT_APP_API_URL ?? '';
 
 async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, {
