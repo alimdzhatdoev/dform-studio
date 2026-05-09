@@ -3,62 +3,7 @@
 -- Эквивалент JSON-хранилища в реляционной модели (MySQL)
 -- ================================================================
 
--- ── Заказы ──────────────────────────────────────────────────────
-CREATE TABLE orders (
-  id          VARCHAR(64)  NOT NULL,
-  name        VARCHAR(255) NOT NULL,
-  email       VARCHAR(255) NOT NULL,
-  phone       VARCHAR(50)  DEFAULT NULL,
-  service     VARCHAR(255) NOT NULL,
-  description TEXT         NOT NULL,
-  budget      VARCHAR(100) DEFAULT NULL,
-  status      ENUM('new','in_progress','completed','cancelled') NOT NULL DEFAULT 'new',
-  created_at  DATETIME     NOT NULL,
-  updated_at  DATETIME     DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
--- ── Аналитика ───────────────────────────────────────────────────
-CREATE TABLE analytics (
-  id           INT  NOT NULL AUTO_INCREMENT,
-  total_orders INT  NOT NULL DEFAULT 0,
-  total_revenue INT NOT NULL DEFAULT 0,
-  PRIMARY KEY (id)
-);
-
-CREATE TABLE analytics_orders_by_day (
-  id    INT  NOT NULL AUTO_INCREMENT,
-  date  DATE NOT NULL,
-  count INT  NOT NULL DEFAULT 0,
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_date (date)
-);
-
--- ── Портфолио ───────────────────────────────────────────────────
-CREATE TABLE portfolio (
-  id               VARCHAR(64)  NOT NULL,
-  title            VARCHAR(255) NOT NULL,
-  category         VARCHAR(100) NOT NULL,
-  client           VARCHAR(255) NOT NULL,
-  year             VARCHAR(10)  NOT NULL,
-  description      TEXT         DEFAULT NULL,
-  color            VARCHAR(20)  DEFAULT '#7B5EA7',
-  stats_duration   VARCHAR(100) DEFAULT NULL,
-  stats_deliverables VARCHAR(100) DEFAULT NULL,
-  stats_result     VARCHAR(100) DEFAULT NULL,
-  PRIMARY KEY (id)
-);
-
-CREATE TABLE portfolio_tags (
-  id           INT          NOT NULL AUTO_INCREMENT,
-  portfolio_id VARCHAR(64)  NOT NULL,
-  tag          VARCHAR(100) NOT NULL,
-  sort_order   INT          NOT NULL DEFAULT 0,
-  PRIMARY KEY (id),
-  FOREIGN KEY (portfolio_id) REFERENCES portfolio(id) ON DELETE CASCADE
-);
-
--- ── Услуги ──────────────────────────────────────────────────────
+-- ── Услуги (до orders, т.к. на неё ссылаются) ──────────────────
 CREATE TABLE services (
   id          VARCHAR(64)  NOT NULL,
   icon        VARCHAR(10)  DEFAULT NULL,
@@ -76,6 +21,64 @@ CREATE TABLE service_features (
   sort_order INT          NOT NULL DEFAULT 0,
   PRIMARY KEY (id),
   FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
+);
+
+-- ── Заказы ──────────────────────────────────────────────────────
+CREATE TABLE orders (
+  id          VARCHAR(64)  NOT NULL,
+  name        VARCHAR(255) NOT NULL,
+  email       VARCHAR(255) NOT NULL,
+  phone       VARCHAR(50)  DEFAULT NULL,
+  service_id  VARCHAR(64)  NOT NULL,
+  description TEXT         NOT NULL,
+  budget      VARCHAR(100) DEFAULT NULL,
+  status      ENUM('new','in_progress','completed','cancelled') NOT NULL DEFAULT 'new',
+  created_at  DATETIME     NOT NULL,
+  updated_at  DATETIME     DEFAULT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (service_id) REFERENCES services(id)
+);
+
+-- ── Аналитика ───────────────────────────────────────────────────
+CREATE TABLE analytics (
+  id            INT NOT NULL AUTO_INCREMENT,
+  total_orders  INT NOT NULL DEFAULT 0,
+  total_revenue INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE analytics_orders_by_day (
+  id           INT  NOT NULL AUTO_INCREMENT,
+  analytics_id INT  NOT NULL,
+  date         DATE NOT NULL,
+  count        INT  NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_date (date),
+  FOREIGN KEY (analytics_id) REFERENCES analytics(id) ON DELETE CASCADE
+);
+
+-- ── Портфолио ───────────────────────────────────────────────────
+CREATE TABLE portfolio (
+  id                 VARCHAR(64)  NOT NULL,
+  title              VARCHAR(255) NOT NULL,
+  category           VARCHAR(100) NOT NULL,
+  client             VARCHAR(255) NOT NULL,
+  year               VARCHAR(10)  NOT NULL,
+  description        TEXT         DEFAULT NULL,
+  color              VARCHAR(20)  DEFAULT '#7B5EA7',
+  stats_duration     VARCHAR(100) DEFAULT NULL,
+  stats_deliverables VARCHAR(100) DEFAULT NULL,
+  stats_result       VARCHAR(100) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE portfolio_tags (
+  id           INT          NOT NULL AUTO_INCREMENT,
+  portfolio_id VARCHAR(64)  NOT NULL,
+  tag          VARCHAR(100) NOT NULL,
+  sort_order   INT          NOT NULL DEFAULT 0,
+  PRIMARY KEY (id),
+  FOREIGN KEY (portfolio_id) REFERENCES portfolio(id) ON DELETE CASCADE
 );
 
 -- ── Команда ─────────────────────────────────────────────────────
@@ -110,9 +113,11 @@ CREATE TABLE site_about (
 
 CREATE TABLE site_about_paragraphs (
   id         INT  NOT NULL AUTO_INCREMENT,
+  about_id   INT  NOT NULL,
   content    TEXT NOT NULL,
   sort_order INT  NOT NULL DEFAULT 0,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  FOREIGN KEY (about_id) REFERENCES site_about(id) ON DELETE CASCADE
 );
 
 -- ── Настройки сайта: CTA блок ───────────────────────────────────
@@ -141,8 +146,8 @@ CREATE TABLE clients (
 
 -- ── Статистика (цифры на сайте) ─────────────────────────────────
 CREATE TABLE stats (
-  id    INT         NOT NULL AUTO_INCREMENT,
-  value VARCHAR(50) NOT NULL,
+  id    INT          NOT NULL AUTO_INCREMENT,
+  value VARCHAR(50)  NOT NULL,
   label VARCHAR(255) NOT NULL,
   PRIMARY KEY (id)
 );
