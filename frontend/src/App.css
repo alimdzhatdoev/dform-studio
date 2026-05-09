@@ -1,0 +1,6 @@
+/* App-level resets — design system tokens in index.css */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
